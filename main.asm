@@ -1,5 +1,6 @@
 %define LEN_BUFFER 512
 %define MAX_TROZOS 64 
+%define TAMAÑO_ENTRADA_COMANDO 9
 
 %macro endProgram 0
     mov rax, 60
@@ -33,19 +34,82 @@
 
 section .data
 
+overflow_message db "An overflow has ocurred", 0Ah
+overflow_message_length equ  $ - overflow_message
 
-debug_message db "Im here", 0Ah
+debug_message db        "Im here", 0Ah
 debug_message_length equ $ - debug_message
 
-prompt db  "$>"                               ;prompt
+prompt db               "$>"                               ;prompt
 prompt_length equ $ - prompt                       ;len prompt
 
-new_line db 0Ah                                         ;caracter new line
-terminado db 0                                          ;variable terminado, termina el bucle del buffer
+new_line db             0Ah                                         ;caracter new line
+terminado db            0                                          ;variable terminado, termina el bucle del buffer
 
-comando db  LEN_BUFFER dup(0)                           ;buffer para guardar la entrada del comando
-comando_trozos dq MAX_TROZOS dup(0)                     ;buffer para guardar los trozos del comando
-comando_copy db LEN_BUFFER dup(0)
+comando db              LEN_BUFFER dup(0)                           ;buffer para guardar la entrada del comando
+comando_trozos dq       MAX_TROZOS dup(0)                     ;buffer para guardar los trozos del comando
+comando_copy db         LEN_BUFFER dup(0)
+
+string1 db              "authors",0
+string2 db              "pid", 0
+string3 db              "ppid",0
+string4 db              "cd",0
+string5 db              "date",0
+string6 db              "historic",0
+string7 db              "open", 0
+string8 db              "close", 0
+string9 db              "dup",0
+string10 db             "infosys",0
+string11 db             "help",0
+string12 db             "quit",0
+string13 db             "exit", 0
+string14 db             "bye", 0
+
+
+comandos:
+
+    db 0
+    dq string1
+
+    db 1
+    dq string2 
+
+    db 2
+    dq string3
+
+    db 3
+    dq string4
+
+    db 4 
+    dq string5
+
+    db 5
+    dq string6 
+
+    db 6
+    dq string7
+
+    db 7 
+    dq string8
+
+    db 8
+    dq string9
+
+    db 9
+    dq string10
+
+    db 10
+    dq string11
+
+    db 11
+    dq string12
+
+    db 12
+    dq string13
+
+    db 13
+    dq string14
+    
 
 section .bss
 
@@ -53,11 +117,67 @@ section .bss
 section .text
 global _start
 
-;funcion que sirve para imprimir un string
+;funcion que sirve para imprimir un digito en formato string
+;todo:fix the risk of overflow in this function
+printDigit:
+
+
+    push rbp
+    mov rbp, rsp
+
+    mov ax, word [rbp + 16]
+    mov rcx, 0
+    mov dl, 10
+
+    ._while:
+    cmp ax, 0
+    je ._endwhile
+
+    div dl
+
+    movzx bx, al                    ;this is my quotient
+    add ah, '0'                     ;attention here, it may cause overflow
+    dec rsp
+    mov byte [rsp], ah
+    inc rcx
+    mov ax, bx
+
+    jmp ._while
+    ._endwhile:
+
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, rsp
+    mov rdx, rcx 
+    syscall
+
+
+    ._return:
+    mov rsp, rbp
+    pop rbp
+    ret
+
+
+buscarCodigoComando: ;function not finished
+    
+    push rbp
+    mov rbp, rsp
+
+    mov rsi, [rbp + 16]
+    
+
+procesarEntrada:     ;function not finished
+
+    push rbp
+    mov rbp, rsp
+
+    mov rsi, [rbp + 16]                     ;offset de comando
+    mov rdi, [rbp + 24]                     ;trozos comando
 
 
 
-printString:
+
+printString:        
 
     push rbp
     mov rbp, rsp
@@ -122,6 +242,9 @@ printNullTerminated:
 
 
 _start:
+
+    push word 1578
+    call printDigit
 
     ._while:
     cmp byte [terminado],  0
@@ -199,14 +322,9 @@ _start:
     ;probamos null terminated
     mov rsi, qword [comando_trozos]
     push rsi
-    call printNullTerminated
+    call strlen
 
 
-    push LEN_BUFFER
-    push comando
-    call printString
-
-    printNewLine
 
 
     jmp ._while
