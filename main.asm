@@ -1,6 +1,7 @@
 %define LEN_BUFFER 512
 %define MAX_TROZOS 64 
 %define TAMAÑO_ENTRADA_COMANDO 9
+%define NEW_LINE 0Ah
 
 %macro endProgram 0
     mov rax, 60
@@ -232,8 +233,7 @@ printNullTerminated:
 
     mov rax, 1
     mov rdi, 1
-    mov rsi, rcx
-    ;la direccion ya se encuentra en rsi
+    mov rsi, rcx 
     mov rdx, rbx ; aqui esta la longitud
     syscall
 
@@ -243,8 +243,7 @@ printNullTerminated:
 
 _start:
 
-    push word 1578
-    call printDigit
+
 
     ._while:
     cmp byte [terminado],  0
@@ -261,6 +260,7 @@ _start:
 
 
     ;copiamos de un buffer a otro
+    cld
     mov esi, comando
     mov edi, comando_copy
     mov rcx, rax
@@ -303,6 +303,19 @@ _start:
     ._next:
 
 
+
+    cmp byte [rcx], NEW_LINE
+    jne ._false2
+    ._true2:
+    mov byte [rcx], 0
+    mov qword [rsi], rbx
+    add rsi, 8
+    mov rbx, rcx
+    jmp ._next2
+    ._false2:
+    ._next2:
+
+
     cmp byte [rcx], 0
     jne ._false1
 
@@ -319,10 +332,12 @@ _start:
     ._endwhile1:
 
 
-    ;probamos null terminated
+    
     mov rsi, qword [comando_trozos]
     push rsi
     call strlen
+    push rax
+    call printDigit
 
 
 
