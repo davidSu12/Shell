@@ -69,6 +69,34 @@ printString:
     ret 16
 
 
+printNullTerminated:
+
+    push rbp
+    mov rbp, rsp
+
+    mov rsi, qword [rbp + 16]
+    mov rcx, rsi ; copia de rsi
+    mov rbx, 0 
+
+    ._while:
+    cmp byte [rsi], 0 
+    je ._endwhile
+    inc rsi
+    inc rbx
+    jmp ._while
+    ._endwhile:
+
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, rcx
+    ;la direccion ya se encuentra en rsi
+    mov rdx, rbx ; aqui esta la longitud
+    syscall
+
+    pop rbp
+    ret 8
+
+
 _start:
 
     _while:
@@ -144,10 +172,10 @@ _start:
     _endwhile1:
 
 
+    ;probamos null terminated
     mov rsi, qword [comando_trozos + 8]
-    push LEN_BUFFER
     push rsi
-    call printString
+    call printNullTerminated
 
 
     push LEN_BUFFER
