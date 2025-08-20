@@ -15,6 +15,13 @@
     syscall
 %endmacro
 
+%macro DEBUGMESSAGE 0
+
+    push debug_message_length
+    push debug_message
+    call printString
+
+%endmacro
 
 %macro printPrompt 0
 
@@ -26,6 +33,9 @@
 
 section .data
 
+
+debug_message db "Im here", 0Ah
+debug_message_length equ $ - debug_message
 
 prompt db  "$>"                               ;prompt
 prompt_length equ $ - prompt                       ;len prompt
@@ -45,6 +55,7 @@ global _start
 
 ; funcion que sirve para imprimir un string
 printString:
+
     push rbp
     mov rbp, rsp
 
@@ -59,7 +70,7 @@ printString:
 
 
 _start:
-    
+
     _while:
     cmp byte [terminado],  0
     jne _endwhile
@@ -80,6 +91,8 @@ _start:
     mov rcx, rax
     rep movsb
 
+
+
     ;acto seguido hacemos el parsing
     mov rbx, comando_copy                           ;init lexeme
     mov rcx, comando_copy                           ;current lexeme
@@ -88,7 +101,7 @@ _start:
 
     _while1:
     cmp byte [rbx], 0
-    je _endwhile
+    je _endwhile1
 
 
     ;lo expresamos como dos ifs
@@ -98,12 +111,12 @@ _start:
     
     _true:    
     mov byte [rcx], 0
-    mov qword[rsi], rbx
+    mov qword [rsi], rbx
     add rsi, 8
     inc rcx
     
     _while2:
-    cmp byte[rcx], ' '
+    cmp byte [rcx], ' '
     jne _endwhile2
     inc rcx
     jmp _while2
@@ -115,24 +128,30 @@ _start:
     _next:
 
 
-    cmp byte[rcx], 0
+    cmp byte [rcx], 0
     jne _false1
 
     _true1:
-    mov qword[rsi], rbx
+    mov qword [rsi], rbx
+    mov rbx, rcx
     jmp _next1
     
     _false1:
     _next1:
+
+    inc rcx
     jmp _while1
     _endwhile1:
 
 
-
+    mov rsi, qword [comando_trozos + 8]
+    push LEN_BUFFER
+    push rsi
+    call printString
 
 
     push LEN_BUFFER
-    push comando_copy
+    push comando
     call printString
 
     printNewLine
