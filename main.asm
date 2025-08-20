@@ -99,9 +99,9 @@ printNullTerminated:
 
 _start:
 
-    _while:
+    ._while:
     cmp byte [terminado],  0
-    jne _endwhile
+    jne ._endwhile
 
     printPrompt
 
@@ -127,53 +127,53 @@ _start:
     mov rsi, comando_trozos                         ;aqui vamos a ir guardando los trozos
     
 
-    _while1:
+    ._while1:
     cmp byte [rbx], 0
-    je _endwhile1
+    je ._endwhile1
 
 
     ;lo expresamos como dos ifs
     
     cmp byte [rcx], ' '
-    jne _false
+    jne ._false
     
-    _true:    
+    ._true:    
     mov byte [rcx], 0
     mov qword [rsi], rbx
     add rsi, 8
     inc rcx
     
-    _while2:
+    ._while2:
     cmp byte [rcx], ' '
-    jne _endwhile2
+    jne ._endwhile2
     inc rcx
-    jmp _while2
+    jmp ._while2
     
-    _endwhile2:
+    ._endwhile2:
     mov rbx, rcx
-    jmp _next
-    _false:
-    _next:
+    jmp ._next
+    ._false:
+    ._next:
 
 
     cmp byte [rcx], 0
-    jne _false1
+    jne ._false1
 
-    _true1:
+    ._true1:
     mov qword [rsi], rbx
     mov rbx, rcx
-    jmp _next1
+    jmp ._next1
     
-    _false1:
-    _next1:
+    ._false1:
+    ._next1:
 
     inc rcx
-    jmp _while1
-    _endwhile1:
+    jmp ._while1
+    ._endwhile1:
 
 
     ;probamos null terminated
-    mov rsi, qword [comando_trozos + 8]
+    mov rsi, qword [comando_trozos]
     push rsi
     call printNullTerminated
 
@@ -185,8 +185,8 @@ _start:
     printNewLine
 
 
-    jmp _while
-    _endwhile:
+    jmp ._while
+    ._endwhile:
     
 
     endProgram
