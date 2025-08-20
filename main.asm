@@ -53,7 +53,10 @@ section .bss
 section .text
 global _start
 
-; funcion que sirve para imprimir un string
+;funcion que sirve para imprimir un string
+
+
+
 printString:
 
     push rbp
@@ -68,6 +71,27 @@ printString:
     pop rbp
     ret 16
 
+
+
+strlen:
+    push rbp
+    mov rbp, rsp
+
+
+    mov rsi, qword [rbp + 16]
+    mov rdx, 0
+    
+    ._while:
+    cmp byte [rsi], 0
+    je ._endwhile
+    inc rsi
+    inc rdx 
+    jmp ._while
+    
+    ._endwhile:
+    mov rax, rdx
+    pop rbp
+    ret 8
 
 printNullTerminated:
 
