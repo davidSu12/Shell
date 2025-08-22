@@ -131,17 +131,39 @@ imprimirComandos:
     push rbp
     mov rbp, rsp
 
-    mov rsi, [rbp + 16]
+    push rax
+    push rdi
+    push rsi
+    push rdx
+    push rbx
+
+    mov rbx, comandos
 
     ._while:
-    cmp byte [rsi], -1
-    je ._return
+    cmp byte [rbx], -1
+    je ._endwhile
 
-    push qword [rsi]
+    inc rbx
+    push qword [rbx]
+    call printNullTerminated
+
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, new_line
+    mov rdx, 1
+    syscall
+
+    add rbx, 8
 
     jmp ._while
     ._endwhile:
 
+
+    pop rbx
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
 
     ._return:
     pop rbp
@@ -167,9 +189,6 @@ printDigit:
     mov dl, 10
 
     ._while:
-    cmp ax, 0
-    je ._endwhile
-
     div dl
 
     movzx bx, al                    ;this is my quotient
@@ -179,7 +198,8 @@ printDigit:
     inc rcx
     mov ax, bx
 
-    jmp ._while
+    cmp ax, 0
+    ja ._while
     ._endwhile:
 
     mov rax, 1
@@ -198,7 +218,7 @@ printDigit:
     ._return:
     mov rsp, rbp
     pop rbp
-    ret
+    ret 8
 
 strcmp:
     push rbp
@@ -238,12 +258,90 @@ strcmp:
 
 
 
+;busca el codigo del comando y devuelve en el registro rax la direccion de comienzo del mismo
+;input: string del comando a buscar
+;output: codigo numerico del comando para posteriormente utilizarlo en un switch en procesar cadena
+;return: rcx register
+
+
+
 buscarCodigoComando: ;function not finished
     
     push rbp
     mov rbp, rsp
 
-    mov rsi, [rbp + 16]
+    push rsi
+    push rdi
+    push rax
+    push rbx
+
+    mov rsi, [rbp + 16] ;direccion donde se encuentra la cadena del comando que tenemos que buscar
+    mov rdi, comandos
+
+    ._while:
+    movsx rax, byte [rdi]
+    
+    cmp rax, -1
+    je ._notFound
+
+    mov rbx, rdi ;aqui es donde se encuentra el codigo del comando
+    inc rdi
+
+%ifdef DEBUG
+
+    push qword [rdi]
+    call printNullTerminated
+
+    push rsi
+    call printNullTerminated
+
+    push rax
+    push rdi
+    push rsi
+    push rdx
+
+
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, new_line
+    mov rdx, 1
+    syscall
+
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
+
+%endif
+
+    push qword [rdi]
+    push rsi
+    call strcmp
+
+    je ._found
+    add rdi, 8         ;offset necesario para acceder a la siguiente entrada del comando
+
+    jmp ._while
+    ._endwhile:
+
+
+    ._notFound:
+    mov rcx, -1
+    jmp ._return
+
+
+    ._found:
+    mov rcx, rbx
+
+    ._return:
+    pop rbx
+    pop rax
+    pop rdi
+    pop rsi
+
+    
+    pop rbp
+    ret 8
     
 
 procesarEntrada:     ;function not finished
@@ -438,9 +536,15 @@ _start:
 
 
 
-    push 1024
-    call printDigit
+%ifdef DEBUG    
+    push qword [comando_trozos]
+    call buscarCodigoComando
 
+
+    movzx rbx, byte [rcx]
+    push rbx
+    call printDigit
+%endif
 
     jmp ._while
     ._endwhile:
