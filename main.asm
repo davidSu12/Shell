@@ -190,6 +190,11 @@ printDigit:
 strcmp:
     push rbp
     mov rbp, rsp
+		
+		push rax
+		push rdx
+		push rdi
+		push rsi 
 
     mov rsi, [rbp + 16]
     mov rdi, [rbp + 24]
@@ -209,6 +214,12 @@ strcmp:
     cmp al, dl
     je L1
     L3:
+
+		pop rsi
+		pop rdi 
+		pop rdx
+		pop rax
+
     pop rbp
     ret 16
 
@@ -238,11 +249,21 @@ printString:
     push rbp
     mov rbp, rsp
 
+		push rax
+		push rdi
+		push rsi
+		push rdx
+
     mov rax, 1
     mov rdi, 1
     mov rsi, qword [rbp + 16]                   ;offset string
     mov rdx, qword [rbp + 24]                   ;len string
     syscall
+
+		pop rdx
+		pop rsi
+		pop rdi
+		pop rax
 
     pop rbp
     ret 16
@@ -252,7 +273,9 @@ printString:
 strlen:
     push rbp
     mov rbp, rsp
-
+ 
+		push rsi
+		push rdx
 
     mov rsi, qword [rbp + 16]
     mov rdx, 0
@@ -266,6 +289,10 @@ strlen:
     
     ._endwhile:
     mov rax, rdx
+		
+		pop rdx
+		pop rsi
+
     pop rbp
     ret 8
 
@@ -274,6 +301,10 @@ printNullTerminated:
     push rbp
     mov rbp, rsp
 
+		push rsi
+		push rcx
+		push rbx
+		
     mov rsi, qword [rbp + 16]
     mov rcx, rsi ; copia de rsi
     mov rbx, 0 
@@ -286,11 +317,13 @@ printNullTerminated:
     jmp ._while
     ._endwhile:
 
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, rcx 
-    mov rdx, rbx ; aqui esta la longitud
-    syscall
+		push rbx
+		push rcx
+		call printString
+
+		pop rbx
+		pop rcx
+		pop rsi 
 
     pop rbp
     ret 8
