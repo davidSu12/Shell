@@ -11,11 +11,22 @@
 %endmacro
 
 %macro printNewLine 0
+    push rax
+    push rdi
+    push rsi
+    push rdx
+
     mov rax, 1
     mov rdi, 1
     mov rsi, new_line
     mov rdx, 1
     syscall
+
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
+
 %endmacro
 
 %macro DEBUGMESSAGE 0
@@ -35,6 +46,24 @@
 %endmacro
 
 section .data
+
+
+error_message db "Entrada no reconocida", 0
+error_message_length equ $ - error_message
+
+
+authors_login db "j.garcia10", 0
+authors_login_length equ $ - authors_login
+
+authors_name db "david suarez", 0
+authors_name_length equ $ - authors_name
+
+authors_opt_1 db "-l",0
+length_authors_opt_1 equ $ - authors_opt_1
+
+authors_opt_2 db "-n",0
+length_authors_opt_2 equ $ - authors_opt_2
+
 
 overflow_message db "An overflow has ocurred", 0Ah
 overflow_message_length equ  $ - overflow_message
@@ -123,6 +152,98 @@ section .bss
 
 section .text
 global _start
+
+
+;authors PROTO, offsetComando, offsetTrozosComando
+authors:
+    
+    push rbp
+    mov rbp, rsp
+
+
+    push rsi
+    push rdi
+    push rcx
+    push rdx
+    push rbx
+
+    mov rsi, [rbp + 16]                     ;offsetComando
+    mov rdi, [rbp + 24]                     ;offsetTrozosComando
+
+
+    mov rcx, authors_opt_1                  ;-l
+    mov rdx, authors_opt_2                  ;-n
+
+    mov rbx, qword [rdi + 8]                ;opcion comando
+
+    push rbx
+    push rcx
+    call strcmp
+
+    jne ._false
+    ._true:
+    
+    push authors_login
+    call printNullTerminated
+    printNewLine
+    jmp ._next
+
+    ._false:
+
+    push rbx
+    push rdx
+    call strcmp 
+    jne ._false1
+    
+    ._true1:
+    
+    push authors_name
+    call printNullTerminated
+    printNewLine
+    jmp ._next
+    
+    ._false1:
+    ._next:
+
+    cmp rbx, 0
+    jne ._false2
+    ._true2:
+    ;imprimimos tanto login como nombre
+
+    push authors_name
+    call printNullTerminated
+
+    printNewLine
+
+    push authors_login
+    call printNullTerminated
+
+    printNewLine
+
+    jmp ._next1
+    ._false2:
+
+    push error_message
+    call printNullTerminated
+    
+    ._next1:
+
+
+
+    ._return:
+    pop rbx
+    pop rdx
+    pop rcx
+    pop rdi
+    pop rsi
+
+    pop rbp
+
+    ret 16
+
+
+
+
 
 
 ;esta funcion imprime todos los comandos disponibles
@@ -349,10 +470,124 @@ procesarEntrada:     ;function not finished
     push rbp
     mov rbp, rsp
 
+    push rsi
+    push rdi
+    push rbx
+    push rcx
+
     mov rsi, [rbp + 16]                     ;offset de comando
     mov rdi, [rbp + 24]                     ;trozos comando
 
+    mov rbx, qword [rdi]                    ;comando
+    push rbx
+    call buscarCodigoComando
 
+    movzx rbx, byte [rcx]
+    ;aqui deberiamos comprobar el retorno de errores
+
+
+    jmp ._processSwitch
+    ._switch:
+
+    ._L1:
+
+    jmp ._nextSwitch
+    ._L2:
+
+    jmp ._nextSwitch
+    ._L3:
+
+    jmp ._nextSwitch
+    ._L4:
+
+    jmp ._nextSwitch
+    ._L5:
+
+    jmp ._nextSwitch
+    ._L6:
+
+    jmp ._nextSwitch
+    ._L7:
+
+    jmp ._nextSwitch
+    ._L8:
+
+    jmp ._nextSwitch
+    ._L9:
+
+    jmp ._nextSwitch
+    ._L10:
+
+    jmp ._nextSwitch
+    ._L11:
+
+    jmp ._nextSwitch
+    ._L12:
+
+    jmp ._nextSwitch
+    ._L13:
+
+    jmp ._nextSwitch
+    ._L14:
+
+    jmp ._nextSwitch
+
+    ._processSwitch:
+    cmp rbx, 0
+    je ._L1
+    
+    cmp rbx, 1
+    je ._L2
+    
+    cmp rbx, 2
+    je ._L3
+    
+    cmp rbx, 3
+    je ._L4
+    
+    cmp rbx, 4
+    je ._L5
+    
+    cmp rbx, 5
+    je ._L6
+    
+    cmp rbx, 6
+    je ._L7
+    
+    cmp rbx, 7
+    je ._L8
+    
+    cmp rbx, 8
+    je ._L9
+
+    cmp rbx, 9
+    je ._L10 
+
+    cmp rbx, 10
+    je ._L11
+
+    cmp rbx, 11
+    je ._L12
+
+    cmp rbx, 12
+    je ._L13
+
+    cmp rbx, 13
+    je ._L14 
+
+    ;aqui deberiamos considerar el caso default
+    ._nextSwitch:
+
+
+
+
+    pop rcx
+    pop rbx
+    pop rdi
+    pop rsi
+
+    pop rbp
+    ret 16 
 
 
 printString:        
