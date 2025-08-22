@@ -1,23 +1,60 @@
+%macro printString 2
+
+	mov rax, 1
+	mov rdi, 1
+	mov rsi, %1
+	mov rdx, %2
+	syscall
+%endmacro
+
+section .data
+cad db "mello"
+cad1 db "hello"
+
+message db "hola mundo"
+message_length equ $ - message
+
 section .text
 global _start
+
+
+strcmp:
+    push rbp
+    mov rbp, rsp
+
+    mov rsi, [rbp + 16]
+    mov rdi, [rbp + 24]
+
+
+    L1:
+    mov al, byte [rsi]
+    mov dl, byte [rdi]
+    cmp al, 0
+    jne L2
+    cmp dl, 0
+    jne L2
+    jmp L3
+    L2:
+    inc rsi
+    inc rdi
+    cmp al, dl
+    je L1
+    L3:
+    pop rbp
+    ret 16
+
+
 _start:
-	mov ax, 10
-	mov bx, 10
-	div bx
 
-	cmp al, 0
-	jne _false
-	_true:
+	push cad
+	push cad1
+	call strcmp
 
+	jb _message
 	jmp _next
-	_false:
-
-	mov rax, 60
-	mov rdi, -1
-	syscall
-
+	_message:
+	printString message, message_length
 	_next:
-
 	mov rax, 60
 	xor rdi, rdi 
 	syscall

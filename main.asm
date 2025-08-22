@@ -158,6 +158,31 @@ printDigit:
     pop rbp
     ret
 
+strcmp:
+    push rbp
+    mov rbp, rsp
+
+    mov rsi, [rbp + 16]
+    mov rdi, [rbp + 24]
+
+
+    L1:
+    mov al, byte [rdi]
+    mov dl, byte [rsi]
+    cmp al, 0
+    jne L2
+    cmp dl, 0
+    jne L2
+    jmp L3
+    L2:
+    inc rsi
+    inc rdi
+    cmp al, dl
+    je L1
+    L3:
+    pop rbp
+    ret 16
+
 
 buscarCodigoComando: ;function not finished
     
