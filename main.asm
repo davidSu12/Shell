@@ -4,6 +4,49 @@
 %define NEW_LINE 0Ah
 
 
+%macro flushcomando 0
+    
+    push rsi
+    push rcx
+
+    mov rsi, comando
+    mov rcx, 0
+    %%T1:
+    cmp rcx, LEN_BUFFER
+    jae %%ENDT1
+    mov byte [rsi], 0
+    inc rcx
+    inc rsi
+    jmp %%T1
+    %%ENDT1:
+
+    pop rcx
+    pop rsi
+
+%endmacro
+
+
+%macro flushTrozosComando 0
+
+    push rsi 
+    push rcx
+    
+    mov rsi, comando_trozos
+    mov rcx, 0
+
+    %%M1:
+    cmp rcx, MAX_TROZOS
+    jae %%ENDM1
+    mov qword [rsi], 0
+    inc rcx
+    add rsi, 8
+    jmp %%M1
+    %%ENDM1:
+
+    pop rcx
+    pop rsi
+%endmacro
+
 %macro endProgram 0
     mov rax, 60
     xor rdi, rdi
@@ -153,6 +196,9 @@ section .bss
 section .text
 global _start
 
+exit:
+    mov byte [terminado], 1
+    ret
 
 ;authors PROTO, offsetComando, offsetTrozosComando
 authors:
@@ -176,17 +222,35 @@ authors:
 
     mov rbx, qword [rdi + 8]                ;opcion comando
 
+    cmp rbx, 0
+    jne ._false2
+
+    ._true2:
+
+    push authors_name
+    call printNullTerminated
+
+    printNewLine
+
+    push authors_login
+    call printNullTerminated
+
+    printNewLine
+
+    jmp ._return
+
+    ._false2:
+
     push rbx
     push rcx
     call strcmp
 
     jne ._false
     ._true:
-    
     push authors_login
     call printNullTerminated
     printNewLine
-    jmp ._next
+    jmp ._return
 
     ._false:
 
@@ -200,33 +264,15 @@ authors:
     push authors_name
     call printNullTerminated
     printNewLine
-    jmp ._next
+    jmp ._return
     
     ._false1:
     ._next:
 
-    cmp rbx, 0
-    jne ._false2
-    ._true2:
-    ;imprimimos tanto login como nombre
-
-    push authors_name
-    call printNullTerminated
-
-    printNewLine
-
-    push authors_login
-    call printNullTerminated
-
-    printNewLine
-
-    jmp ._next1
-    ._false2:
 
     push error_message
     call printNullTerminated
-    
-    ._next1:
+
 
 
 
@@ -240,9 +286,6 @@ authors:
     pop rbp
 
     ret 16
-
-
-
 
 
 
@@ -465,7 +508,9 @@ buscarCodigoComando: ;function not finished
     ret 8
     
 
-procesarEntrada:     ;function not finished
+
+;procesarEntrada: PROTO, offsetComando, offsetTrozosComando
+procesarEntrada:    
 
     push rbp
     mov rbp, rsp
@@ -490,6 +535,10 @@ procesarEntrada:     ;function not finished
     ._switch:
 
     ._L1:
+
+    push rdi
+    push rsi
+    call authors
 
     jmp ._nextSwitch
     ._L2:
@@ -524,14 +573,16 @@ procesarEntrada:     ;function not finished
     jmp ._nextSwitch
     ._L12:
 
+    call exit 
     jmp ._nextSwitch
     ._L13:
-
+    
+    call exit
     jmp ._nextSwitch
     ._L14:
-
+    
+    call exit
     jmp ._nextSwitch
-
     ._processSwitch:
     cmp rbx, 0
     je ._L1
@@ -717,8 +768,6 @@ _start:
     je ._endwhile1
 
 
-    ;lo expresamos como dos ifs
-    
     cmp byte [rcx], ' '
     jne ._false
     
@@ -749,7 +798,7 @@ _start:
     mov qword [rsi], rbx
     add rsi, 8
     mov rbx, rcx
-    jmp ._next2
+    jmp ._next1 ;previous ._next2
     ._false2:
     ._next2:
 
@@ -770,6 +819,11 @@ _start:
     ._endwhile1:
 
 
+ 
+    push comando_trozos
+    push comando
+    call procesarEntrada
+
 
 %ifdef DEBUG    
     push qword [comando_trozos]
@@ -780,6 +834,10 @@ _start:
     push rbx
     call printDigit
 %endif
+
+    
+    flushcomando
+    flushTrozosComando
 
     jmp ._while
     ._endwhile:
