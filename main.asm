@@ -91,6 +91,10 @@
 section .data
 
 
+
+pid_str db "pid:",0
+ppid_str db "ppid:", 0
+
 error_message db "Entrada no reconocida", 0
 error_message_length equ $ - error_message
 
@@ -195,6 +199,52 @@ section .bss
 
 section .text
 global _start
+
+
+pid:
+
+    push rbp
+    mov rbp, rsp
+
+    push rax
+    push rsi
+
+    mov rax, 39
+    syscall
+
+    mov rsi, pid_str
+    push rsi
+    call printNullTerminated
+    push rax
+    call printDigit
+
+
+    printNewLine
+    pop rbp
+    ret
+
+ppid:
+
+    push rbp
+    mov rbp, rsp
+
+    push rax
+    push rsi
+
+    mov rax, 110
+    syscall
+
+    mov rsi, ppid_str
+    push rsi
+    call printNullTerminated
+
+    push rax
+    call printDigit
+
+    printNewLine
+    pop rbp
+    ret
+
 
 exit:
     mov byte [terminado], 1
@@ -542,9 +592,11 @@ procesarEntrada:
 
     jmp ._nextSwitch
     ._L2:
+    call pid
 
     jmp ._nextSwitch
     ._L3:
+    call ppid
 
     jmp ._nextSwitch
     ._L4:
