@@ -3,6 +3,45 @@
 %define TAMAÑO_ENTRADA_COMANDO 9
 %define NEW_LINE 0Ah
 
+%macro prologo 0
+push rbp
+mov rbp, rsp
+push rax
+push rbx
+push rcx
+push rdx
+push rsi
+push rdi
+push r8
+push r9
+push r10
+push r11
+push r12
+push r13
+push r14
+push r15
+%endmacro
+
+%macro epilogo 0
+pop r15
+pop r14
+pop r13
+pop r12
+pop r11
+pop r10
+pop r9
+pop r8
+pop rdi
+pop rsi
+pop rdx
+pop rcx
+pop rbx
+pop rax
+pop rbp
+%endmacro
+
+%define START_LOCAL_VARIABLES 112
+
 %macro endProgram 0
     mov rax, 60
     xor rdi, rdi
@@ -66,6 +105,8 @@ string12 db             "quit",0
 string13 db             "exit", 0
 string14 db             "bye", 0
 
+;---------------------------------
+%define OFFSET_ENTRADA_COMANDO 9
 
 comandos:
 
@@ -110,6 +151,9 @@ comandos:
 
     db 13
     dq string14
+
+    db -1
+    dq 0
     
 
 section .bss
@@ -117,6 +161,29 @@ section .bss
 
 section .text
 global _start
+
+
+;esta funcion imprime todos los comandos disponibles
+imprimirComandos:
+
+    push rbp
+    mov rbp, rsp
+
+    mov rsi, [rbp + 16]
+
+    ._while:
+    cmp byte [rsi], -1
+    je ._return
+
+    push qword [rsi]
+
+    jmp ._while
+    ._endwhile:
+
+
+    ._return:
+    pop rbp
+    ret 8
 
 ;funcion que sirve para imprimir un digito en formato string
 ;todo:fix the risk of overflow in this function
@@ -167,8 +234,8 @@ strcmp:
 
 
     L1:
-    mov al, byte [rdi]
-    mov dl, byte [rsi]
+    mov al, byte [rsi]
+    mov dl, byte [rdi]
     cmp al, 0
     jne L2
     cmp dl, 0
@@ -182,6 +249,7 @@ strcmp:
     L3:
     pop rbp
     ret 16
+
 
 
 buscarCodigoComando: ;function not finished

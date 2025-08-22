@@ -8,8 +8,8 @@
 %endmacro
 
 section .data
-cad db "mello"
-cad1 db "hello"
+cad db "hello",0
+cad1 db "hello",0
 
 message db "hola mundo"
 message_length equ $ - message
@@ -50,7 +50,7 @@ _start:
 	push cad1
 	call strcmp
 
-	jb _message
+	je _message
 	jmp _next
 	_message:
 	printString message, message_length
