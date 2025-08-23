@@ -2,6 +2,7 @@
 %define MAX_TROZOS 64 
 %define TAMAÑO_ENTRADA_COMANDO 9
 %define NEW_LINE 0Ah
+%define MAX_LEN_DIRECTORY 512
 
 
 %macro flushcomando 0
@@ -201,6 +202,63 @@ section .text
 global _start
 
 
+cd_command:
+    push rbp
+    mov rbp, rsp
+
+    push rsi
+    push rdi
+    push rbx
+    push rax
+    push rcx
+    push r8
+    push r9
+
+    mov rsi, [rbp + 16]                     ;offset comando
+    mov r9, [rbp + 24]                     ;offsetTrozosComando
+
+    mov rbx, qword [r9 + 8]                ;opt comando
+
+    cmp rbx, 0
+    jne ._false
+    ._true:
+
+    mov rcx, rsp
+
+    sub rsp, MAX_LEN_DIRECTORY
+    lea r8, [rcx - MAX_LEN_DIRECTORY]
+    mov rax, 79
+    mov rdi, r8
+    mov rsi, MAX_LEN_DIRECTORY  
+    syscall
+
+
+    push r8
+    call printNullTerminated
+
+    printNewLine
+
+    add rsp, MAX_LEN_DIRECTORY
+
+    jmp ._next
+    ._false:
+
+
+    mov rax, 80
+    mov rdi, rbx
+
+    ._next:
+
+    pop r9
+    pop r8
+    pop rcx
+    pop rax
+    pop rbx
+    pop rdi
+    pop rsi
+    pop rbp
+
+    ret 16
 pid:
 
     push rbp
@@ -622,6 +680,9 @@ procesarEntrada:
 
     jmp ._nextSwitch
     ._L4:
+    push rdi
+    push rsi
+    call cd_command
 
     jmp ._nextSwitch
     ._L5:
@@ -775,11 +836,11 @@ printNullTerminated:
     push rbp
     mov rbp, rsp
 
-	push rsi
-	push rcx
-	push rbx
+    push rsi
+    push rcx
+    push rbx
 
-	
+    
     mov rsi, qword [rbp + 16]
     mov rcx, rsi ; copia de rsi
     mov rbx, 0 
@@ -791,18 +852,16 @@ printNullTerminated:
     inc rbx
     jmp ._while
     ._endwhile:
+    push rbx
+    push rcx
+    call printString
 
-	push rbx
-	push rcx
-	call printString
-
-	pop rbx
-	pop rcx
-	pop rsi 
+    pop rbx
+    pop rcx
+    pop rsi 
 
     pop rbp
     ret 8
-
 
 _start:
 
