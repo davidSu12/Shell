@@ -246,6 +246,7 @@ cd_command:
 
     mov rax, 80
     mov rdi, rbx
+    syscall
 
     ._next:
 
