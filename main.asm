@@ -220,6 +220,10 @@ pid:
 
 
     printNewLine
+
+    pop rsi
+    pop rax
+
     pop rbp
     ret
 
@@ -242,6 +246,11 @@ ppid:
     call printDigit
 
     printNewLine
+
+
+    pop rsi
+    pop rax
+
     pop rbp
     ret
 
@@ -385,6 +394,7 @@ imprimirComandos:
 
 ;funcion que sirve para imprimir un digito en formato string
 ;todo:fix the risk of overflow in this function
+
 printDigit:
 
 
@@ -392,27 +402,35 @@ printDigit:
     mov rbp, rsp
 
     push rax
+    push rbx
     push rcx
     push rdx
-    push rbx
     push rdi
     push rsi
+    push r8
+    push r9
 
-    mov ax, word [rbp + 16]
+    mov r9, rsp
+
+
+    
+    mov rdx, 0 
+    mov rax, qword [rbp + 16]
     mov rcx, 0
-    mov dl, 10
+    mov r8, 10
 
     ._while:
-    div dl
+    div r8
 
-    movzx bx, al                    ;this is my quotient
-    add ah, '0'                     ;attention here, it may cause overflow
+  
+    add rdx, '0'                     ;attention here, it may cause overflow
     dec rsp
-    mov byte [rsp], ah
+    mov byte [rsp], dl
     inc rcx
-    mov ax, bx
 
-    cmp ax, 0
+
+    mov rdx, 0
+    cmp rax, 0
     ja ._while
     ._endwhile:
 
@@ -422,15 +440,19 @@ printDigit:
     mov rdx, rcx 
     syscall
 
+    mov rsp, r9
+
+
+    pop r9
+    pop r8
     pop rsi
     pop rdi
-    pop rbx
     pop rdx
     pop rcx
+    pop rbx
     pop rax
 
     ._return:
-    mov rsp, rbp
     pop rbp
     ret 8
 

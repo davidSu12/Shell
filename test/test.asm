@@ -18,6 +18,68 @@ section .text
 global _start
 
 
+printDigit:
+
+
+    push rbp
+    mov rbp, rsp
+
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rdi
+    push rsi
+    push r8
+    push r9
+
+    mov r9, rsp
+
+
+    
+    mov rdx, 0 
+    mov rax, qword [rbp + 16]
+    mov rcx, 0
+    mov r8, 10
+
+    ._while:
+    div r8
+
+  
+    add rdx, '0'                     ;attention here, it may cause overflow
+    dec rsp
+    mov byte [rsp], dl
+    inc rcx
+
+
+    mov rdx, 0
+    cmp rax, 0
+    ja ._while
+    ._endwhile:
+
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, rsp
+    mov rdx, rcx 
+    syscall
+
+    mov rsp, r9
+
+
+    pop r9
+    pop r8
+    pop rsi
+    pop rdi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+
+    ._return:
+    pop rbp
+    ret 8
+
+
 strcmp:
     push rbp
     mov rbp, rsp
@@ -45,16 +107,12 @@ strcmp:
 
 
 _start:
+	
 
-	push cad
-	push cad1
-	call strcmp
 
-	je _message
-	jmp _next
-	_message:
-	printString message, message_length
-	_next:
+	push 1234578910
+	call printDigit
+
 	mov rax, 60
-	xor rdi, rdi 
+	xor rdi, rdi
 	syscall
