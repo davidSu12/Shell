@@ -202,6 +202,40 @@ section .text
 global _start
 
 
+;not finished (we may add a ctime function to obtain the right format)
+date:
+    push rbp
+    mov rbp, rsp
+    
+    push rax
+    push rcx
+    push rdx
+    push rdi
+
+    mov rcx, rsp
+    sub rsp, 8
+
+    lea rdx, [rcx - 8]
+
+    mov rax, 201
+    mov rdi, rdx
+    syscall
+
+    push qword [rdx]
+    call printDigit
+    printNewLine
+
+
+    add rsp, 8
+
+    pop rdi
+    pop rdx
+    pop rcx
+    pop rdx
+
+    pop rbp
+    ret 
+
 cd_command:
     push rbp
     mov rbp, rsp
@@ -687,6 +721,7 @@ procesarEntrada:
 
     jmp ._nextSwitch
     ._L5:
+    call date
 
     jmp ._nextSwitch
     ._L6:
